@@ -1,14 +1,20 @@
 
-CC = gcc
+CC = clang++-14
 FLAGS = -Wall
 
-all: st_reactor.so
+all: st_reactor.so #st_reactor.so
 
 st_reactor.so:st_reactor.o
-	$(CC) -shared -fPIC st_reactor.o -o st_reactor.so pkg-config --cflags --libs glib-2.0
+	$(CC) -shared -fPIC st_reactor.o -o st_reactor.so
+# rm st_reactor.o
 
-st_reactor.o:st_reactor.c st_reactor.h
-	$(CC) $(FLAGS) -c st_reactor.c
+# st_reactor:st_reactor.o
+# 	$(CC) $(FLAGS) -o st_reactor st_reactor.o
+
+
+
+st_reactor.o:st_reactor.cpp st_reactor.hpp
+	$(CC) $(FLAGS) -c st_reactor.cpp
 
 
 .PHONY: clean all
