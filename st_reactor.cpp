@@ -5,19 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-
-// #include <sys/socket.h>
-// #include <unistd.h>
-// #include <arpa/inet.h>
 #include <poll.h>
-// #include <fcntl.h>
-// #include <sys/stat.h>
-
 #include <iostream>
 
-#define PORT 9034 // Port we're listening on
 
 using namespace std;
+
 
 typedef struct reactor_
 {
@@ -29,6 +22,8 @@ typedef struct reactor_
     int isStopReactor;
 
 } Reactor, *Preactor;
+
+void *threadFunction(void *reactor);
 
 void *createReactor()
 {
@@ -45,6 +40,7 @@ void *createReactor()
     reactor->pfds_index = 0;
     reactor->isStopReactor = 0;
 
+    //returns the reactor:
     return reactor;
 }
 
@@ -84,6 +80,7 @@ void stopReactor(void *reactor)
 void WaitFor(void *reactor)
 {
     struct reactor_ *react = (Preactor)reactor;
+    pthread_join(react->r_thread,NULL);
 }
 
 // Function to be executed in the thread
@@ -113,7 +110,7 @@ void *threadFunction(void *reactor)
             {
                 // handler_t currFunc = react->hashmap[react->pfds[i].fd];
                 handler_t currFunc = react->hashmap.at(react->pfds[i].fd);
-                currFunc();
+                currFunc(react->pfds[i].fd,reactor);
             }
         }
     }
