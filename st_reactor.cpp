@@ -13,7 +13,7 @@ using namespace std;
 typedef struct reactor_
 {
 
-    unordered_map<int, handler_t> hashmap;
+    unordered_map<int, handler_t> *hashmap;
     struct pollfd *pfds;
     pthread_t r_thread;
     int pfds_index;
@@ -37,6 +37,9 @@ void *createReactor()
     reactor->pfds = (struct pollfd *)malloc(sizeof(struct pollfd) * 1);
     reactor->pfds_index = 0;
     reactor->isStopReactor = 0;
+    printf("before initing hashmap\n");
+    reactor->hashmap = new unordered_map<int, handler_t>;
+    printf("after initing hashmap\n");
 
     // returns the reactor:
     return reactor;
@@ -44,11 +47,16 @@ void *createReactor()
 
 void addFd(void *reactor, int fd, handler_t handler)
 {
-    printf("reached addFd, fd: %d, handler: %p\n",fd,handler);
+    printf("reached addFd, fd: %d, handler: %p\n", fd, handler);
     // adding to the hashmap:
     struct reactor_ *react = (Preactor)reactor;
+    // unordered_map<int, handler_t> hashmap = {};
+    // hashmap[fd] = handler;
+    // TODO: added this:
     printf("react\n");
-    react->hashmap.emplace(fd, handler);
+    // react->hashmap.emplace(fd, handler);
+    unordered_map<int, handler_t> *hashmap = react->hashmap;
+    (*hashmap)[fd] = handler;
     // react->hashmap[fd] = handler;
     printf("reached hashmapAdd\n");
 
@@ -111,7 +119,11 @@ void *threadFunction(void *reactor)
             if (react->pfds[i].revents & POLLIN)
             {
                 // handler_t currFunc = react->hashmap[react->pfds[i].fd];
-                handler_t currFunc = react->hashmap.at(react->pfds[i].fd);
+
+                // TODO: added this
+                unordered_map<int, handler_t> *hashmap = react->hashmap;
+                handler_t currFunc = (*hashmap).at (react->pfds[i].fd);
+                // handler_t currFunc = react->hashmap.at(react->pfds[i].fd);
                 currFunc(react->pfds[i].fd, reactor);
             }
         }

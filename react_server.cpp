@@ -109,6 +109,8 @@ void chat_func(int chatter_fd, void *reactor)
     printf("Received message: %s", buffer);
 }
 
+
+
 // listener_func for adding new sock_fds to the reactor
 void listener_func(int listener_fd, void *reactor)
 {
@@ -120,6 +122,13 @@ void listener_func(int listener_fd, void *reactor)
                        &addrlen);
 
     addFd((Preactor)reactor, newfd, chat_func);
+}
+void chatHandler(int fd, void* data) {
+    // Cast the data pointer back to the reactor pointer
+    Preactor reactor = (Preactor)data;
+
+    // Call the listener_func within the chatHandler
+    listener_func(fd, reactor);
 }
 
 // Main
@@ -167,8 +176,14 @@ int main(void)
     }
 
 
+ // Define the handler function pointer
+    handler_t handler = &chatHandler;
 
-    addFd(reactor, server_sock, listener_func);
+    // Call addFd with the appropriate arguments
+    addFd(reactor, server_sock, handler);
+// handler_t handler = &listener_func;
+//     addFd(reactor, server_sock, handler);
+    printf("after add in main\n");
 
     startReactor(reactor);
 
