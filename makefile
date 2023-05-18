@@ -1,7 +1,7 @@
 CC = clang++-14
-FLAGS = -Wall
+FLAGS = -Wall -g
 
-all: st_reactor.so react_server
+all:  react_server st_reactor.so
 
 st_reactor.so:st_reactor.hpp
 	$(CC) -shared -fPIC st_reactor.cpp -o st_reactor.so -pthread

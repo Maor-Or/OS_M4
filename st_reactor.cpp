@@ -8,9 +8,7 @@
 #include <poll.h>
 #include <iostream>
 
-
 using namespace std;
-
 
 typedef struct reactor_
 {
@@ -40,15 +38,19 @@ void *createReactor()
     reactor->pfds_index = 0;
     reactor->isStopReactor = 0;
 
-    //returns the reactor:
+    // returns the reactor:
     return reactor;
 }
 
 void addFd(void *reactor, int fd, handler_t handler)
 {
+    printf("reached addFd, fd: %d, handler: %p\n",fd,handler);
     // adding to the hashmap:
     struct reactor_ *react = (Preactor)reactor;
-    react->hashmap[fd] = handler;
+    printf("react\n");
+    react->hashmap.emplace(fd, handler);
+    // react->hashmap[fd] = handler;
+    printf("reached hashmapAdd\n");
 
     // adding to the pfds:
     react->pfds[react->pfds_index].fd = fd;
@@ -80,7 +82,7 @@ void stopReactor(void *reactor)
 void WaitFor(void *reactor)
 {
     struct reactor_ *react = (Preactor)reactor;
-    pthread_join(react->r_thread,NULL);
+    pthread_join(react->r_thread, NULL);
 }
 
 // Function to be executed in the thread
@@ -110,7 +112,7 @@ void *threadFunction(void *reactor)
             {
                 // handler_t currFunc = react->hashmap[react->pfds[i].fd];
                 handler_t currFunc = react->hashmap.at(react->pfds[i].fd);
-                currFunc(react->pfds[i].fd,reactor);
+                currFunc(react->pfds[i].fd, reactor);
             }
         }
     }
