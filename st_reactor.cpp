@@ -37,9 +37,7 @@ void *createReactor()
     reactor->pfds = (struct pollfd *)malloc(sizeof(struct pollfd) * 1);
     reactor->pfds_index = 0;
     reactor->isStopReactor = 0;
-    printf("before initing hashmap\n");
     reactor->hashmap = new unordered_map<int, handler_t>;
-    printf("after initing hashmap\n");
 
     // returns the reactor:
     return reactor;
@@ -47,19 +45,12 @@ void *createReactor()
 
 void addFd(void *reactor, int fd, handler_t handler)
 {
-    printf("reached addFd, fd: %d, handler: %p\n", fd, handler);
+    // printf("reached addFd, fd: %d, handler: %p\n", fd, handler);
+    
     // adding to the hashmap:
     struct reactor_ *react = (Preactor)reactor;
-    // unordered_map<int, handler_t> hashmap = {};
-    // hashmap[fd] = handler;
-    // TODO: added this:
-    printf("react\n");
-    // react->hashmap.emplace(fd, handler);
-    unordered_map<int, handler_t> *hashmap = react->hashmap;
-    (*hashmap)[fd] = handler;
-    // react->hashmap[fd] = handler;
-    printf("reached hashmapAdd\n");
-
+    (*react->hashmap)[fd]=handler;
+   
     // adding to the pfds:
     react->pfds[react->pfds_index].fd = fd;
     react->pfds[react->pfds_index++].events = POLLIN;
@@ -96,7 +87,6 @@ void WaitFor(void *reactor)
 // Function to be executed in the thread
 void *threadFunction(void *reactor)
 {
-
     struct reactor_ *react = (Preactor)reactor;
     react->isStopReactor = 0;
     while (1)
@@ -109,7 +99,7 @@ void *threadFunction(void *reactor)
         int poll_count = poll(react->pfds, react->pfds_index, -1);
         if (poll_count < 0)
         {
-            perror("Erorr in poll");
+            perror("Error in poll");
             exit(1);
         }
 
@@ -118,12 +108,8 @@ void *threadFunction(void *reactor)
         {
             if (react->pfds[i].revents & POLLIN)
             {
-                // handler_t currFunc = react->hashmap[react->pfds[i].fd];
-
-                // TODO: added this
                 unordered_map<int, handler_t> *hashmap = react->hashmap;
                 handler_t currFunc = (*hashmap).at (react->pfds[i].fd);
-                // handler_t currFunc = react->hashmap.at(react->pfds[i].fd);
                 currFunc(react->pfds[i].fd, reactor);
             }
         }
